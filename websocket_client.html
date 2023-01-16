@@ -4,7 +4,13 @@
     </head>
     <body>
         <script>
-
+            var exampleSocket = new WebSocket ("ws://localhost:2345")
+            exampleSocket.onopen = function (event){
+                exampleSocket.send("Hearing?")
+            }
+            exampleSocket.onmessage = function(event){
+                console.log(event.data);
+            }
         </script>
     </body>
 </html>
