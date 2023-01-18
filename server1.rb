@@ -1,6 +1,6 @@
 require 'socket'
 
-server = TCPServer.new('localhost', 2345)
+server = TCPServer.new('localhost', 3000)
 
 loop do 
     # Wait til connection
