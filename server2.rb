@@ -5,7 +5,7 @@ server = TCPServer.new('localhost', 3000)
 
 loop do 
     socket = server.accept
-    STDERR.puts ('Incoming Request')
+    STDERR.puts 'Incoming Request'
 
     http_request = ''
     while (line = socket.gets) && (line != '/r/n')
@@ -39,8 +39,28 @@ loop do
     opcode = first_byte & 0b00001111
 
     raise "We don't support continuations" unless fin
-    raise "We only support opcode 1" unless opcode == 1
+    raise "We only support opcode 1" unless opcode == 1 
 
     second_byte = socket.getbyte
+    is_masked = second_byte & 0b10000000
+    payload_size = second_byte & 0b01111111
+
+    raise 'All incoming frames should be masked according to websocket spec' unless is_masked 
+    raise 'We only support payloads < 126 bytes in lenght' unless payload_size < 126
+
+    SRDERR.puts "Payload size: #{payload_size} bytes"
+
+    mask = 4.times.map {socket.getbyte}
+    STDERR.puts "Got mask: #{mask.inspect}"
+
+    data = payload_size.times.map {socket.getbyte}
+    STDERR.puts "Got masked data: #{data.inspect}"
+
+    unmasked_data = data.each_with_index.map { |byte, i| byte ^ mask[i % 4] }
+    STDERR.puts "Unmasked data: #{unmasked_data.inspect}"
+
+    STDERR.puts "Converted to a string : #{ unmasked_data.pack('*C').force_encoding('utf-8').inspect }"
+
+    socket.close
 
 end
